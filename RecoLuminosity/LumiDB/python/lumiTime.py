@@ -1,4 +1,4 @@
-import os,sys,time,calendar,pytz
+import os,sys,time,calendar
 from datetime import datetime,timedelta
 
 class lumiTime(object):
@@ -6,28 +6,32 @@ class lumiTime(object):
         self.coraltimefm='MM/DD/YY HH24:MI:SS'
         self.pydatetimefm='%m/%d/%y %H:%M:%S'
         self.nbx=3564
+        self.orbits_per_ls=262144 # a lumisection is 2**18 orbits
         self.bunchspace_us=0.02495 #in microseconds
         self.bunchspace_s=24.95e-09 #in seconds
         
-    def timestampTodatetimeUTC(self,ts):
-        return datetime.fromtimestamp(ts,tz=pytz.utc)
+    #def timestampTodatetimeUTC(self,ts):
+        ##return datetime.fromtimestamp(ts,tz=pytz.utc)
+        #return datetime.utcfromtimestamp(ts)
     
-    def LSDuration(self,norbits):
+    def LSDuration(self):
+        return self.OrbitDuration(self.orbits_per_ls)
+
+    def OrbitDuration(self, norbits = 1):
         return timedelta(microseconds=(self.nbx*norbits*self.bunchspace_us))
-    
-    def OrbitDuration(self):
-        return timedelta(microseconds=(self.nbx*self.bunchspace_us))
     
     def OrbitToTimeStr(self,begStrTime,orbitnumber,begorbit=0,customfm=''):
         '''
         given a orbit number, return its corresponding time. Assuming begin time has orbit=0
         '''
-        return self.DatetimeToStr(self.StrToDatetime(begStrTime)+(orbitnumber-begorbit)*self.OrbitDuration(),customfm=customfm)
+        return self.DatetimeToStr(self.StrToDatetime(begStrTime)+self.OrbitDuration(orbitnumber-begorbit),customfm=customfm)
+
     def OrbitToTime(self,begStrTime,orbitnumber,begorbit=0,customfm=''):
         '''
         given a orbit number, return its corresponding time. Default run begin time counting from orbit=0
         '''
-        return self.StrToDatetime(begStrTime,customfm=customfm)+(orbitnumber-begorbit)*self.OrbitDuration()
+        return self.StrToDatetime(begStrTime,customfm=customfm)+self.OrbitDuration(orbitnumber-begorbit)
+
     def OrbitToLocalTimestamp(self,begStrTime,orbitnumber,begorbit=0,customfm=''):
         '''
         given a orbit number, return its corresponding unixtimestamp. Default run begin time counting from orbit=0
